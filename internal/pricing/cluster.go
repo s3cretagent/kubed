@@ -126,28 +126,35 @@ type Part struct {
 func (a AWS) ClusterBill(ctx context.Context, name string, tags map[string][]string, now time.Time) (*ClusterBill, error) {
 	end := now.UTC().Truncate(24 * time.Hour)
 	start := end.AddDate(0, 0, -billedDays)
-	var exprs []string
+	// The filter is built as values and encoded once, so a tag key or value
+	// can hold any character without breaking the JSON.
+	type values struct {
+		Key    string
+		Values []string
+	}
 	keys := make([]string, 0, len(tags))
 	for k := range tags {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+	var exprs []any
 	for _, k := range keys {
-		key, _ := json.Marshal(k) // JSON quoting, not Go's: a key may hold any character
-		vals, _ := json.Marshal(tags[k])
-		exprs = append(exprs, fmt.Sprintf(`{"Tags":{"Key":%s,"Values":%s}}`, key, vals))
+		exprs = append(exprs, map[string]values{"Tags": {Key: k, Values: tags[k]}})
 	}
 	tagged := exprs[0]
 	if len(exprs) > 1 {
-		tagged = `{"Or":[` + strings.Join(exprs, ",") + `]}`
+		tagged = map[string][]any{"Or": exprs}
 	}
 	services := make([]string, 0, len(KubernetesServices))
 	for svc := range KubernetesServices {
 		services = append(services, svc)
 	}
 	sort.Strings(services)
-	svcJSON, _ := json.Marshal(services)
-	filter := `{"And":[` + tagged + `,{"Dimensions":{"Key":"SERVICE","Values":` + string(svcJSON) + `}}]}`
+	encoded, err := json.Marshal(map[string][]any{"And": {tagged, map[string]values{"Dimensions": {Key: "SERVICE", Values: services}}}})
+	if err != nil {
+		return nil, err
+	}
+	filter := string(encoded)
 	out, err := a.run(ctx, "ce", "get-cost-and-usage", "--region", costExplorerRegion,
 		"--time-period", "Start="+start.Format("2006-01-02")+",End="+end.Format("2006-01-02"),
 		"--granularity", "MONTHLY", "--metrics", "AmortizedCost",
