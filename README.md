@@ -4,7 +4,7 @@
 apps, with the broken ones first. It tells you in plain words what is wrong
 and how to fix it, and every screen shows the keys that work on it.
 
-![kubed: apps with the broken ones first, the crash logs, what changed, and going back a version](docs/media/kubed-demo.gif)
+![kubed: apps with the broken ones first, the Enter menu, the crash logs, what changed, and going back a version](docs/media/kubed-demo.gif)
 
 On Amazon EKS it also shows what your cluster and each app cost, from your
 own AWS bill and live spot prices.
