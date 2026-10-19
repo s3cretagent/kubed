@@ -12,7 +12,7 @@ require (
 	github.com/go-logr/logr v1.4.3
 	github.com/muesli/cancelreader v0.2.2
 	github.com/muesli/termenv v0.16.0
-	golang.org/x/sys v0.48.0
+	golang.org/x/sys v0.49.0
 	golang.org/x/term v0.46.0
 	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1
