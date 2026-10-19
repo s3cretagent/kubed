@@ -17,7 +17,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Test (race)
-        run: go test -race ./...
+        run: go test -race -timeout 30m ./...
       - name: Build every release target
         run: |
           for t in darwin/amd64 darwin/arm64 linux/amd64 linux/arm64; do

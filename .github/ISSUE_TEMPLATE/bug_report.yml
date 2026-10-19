@@ -1,0 +1,30 @@
+name: Bug report
+description: kubed showed something wrong, or a key didn't work
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened
+      description: The keys you pressed and what kubed showed.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What is really true
+      description: What kubectl says, or what you expected to see.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: kubed version
+      description: Output of `kubed --version`
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: OS and Kubernetes version
+      placeholder: macOS 15, EKS 1.33
+  - type: textarea
+    attributes:
+      label: Screenshot or anything else
+      description: Please hide private names.

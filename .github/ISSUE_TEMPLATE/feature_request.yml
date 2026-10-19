@@ -1,0 +1,13 @@
+name: Idea or feature request
+description: Something kubed should do, or do better
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: What are you trying to do
+      description: The task, and what slows you down today.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What would help
