@@ -9,7 +9,7 @@ require (
 	github.com/charmbracelet/ultraviolet v0.0.0-20260303162955-0b88c25f3fff
 	github.com/charmbracelet/x/ansi v0.11.7
 	github.com/charmbracelet/x/vt v0.0.0-20260927004216-9c77d672503d
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/muesli/cancelreader v0.2.2
 	github.com/muesli/termenv v0.16.0
 	golang.org/x/sys v0.48.0
