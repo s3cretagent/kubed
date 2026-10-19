@@ -18,3 +18,19 @@ checksum:
 
 changelog:
   sort: asc
+
+brews:
+  - name: kubed
+    repository:
+      owner: s3cretagent
+      name: homebrew-tap
+    directory: Formula
+    homepage: https://github.com/s3cretagent/kubed
+    description: A plain-language Kubernetes terminal UI
+    license: MIT
+    commit_author:
+      name: s3cretagent
+      email: shubhgithub7@gmail.com
+    commit_msg_template: "kubed {{ .Tag }}"
+    test: |
+      system "#{bin}/kubed", "--version"

@@ -1,8 +1,9 @@
 name: release
 
+# Releases are made with goreleaser on a maintainer's machine (it also
+# updates the Homebrew tap, which needs a token this workflow doesn't have).
 on:
-  push:
-    tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write

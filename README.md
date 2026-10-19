@@ -24,12 +24,15 @@ own AWS bill and live spot prices.
 
 ## Install
 
+With Homebrew (macOS and Linux):
+
 ```bash
-gh api repos/s3cretagent/kubed/contents/scripts/install.sh -H 'Accept: application/vnd.github.raw' | sh
+brew install s3cretagent/tap/kubed
 ```
 
-This needs the GitHub CLI, logged in (`gh auth login`) with access to this
-repo. From a copy of the code: `make install`.
+Or with Go: `go install github.com/s3cretagent/kubed/cmd/kubed@latest`. From a
+copy of the code: `make install`. Builds for macOS and Linux are also on the
+[releases page](https://github.com/s3cretagent/kubed/releases).
 
 ## Start
 
