@@ -18,5 +18,5 @@ Fixes go into the latest release. Please upgrade before reporting
 ## What kubed does with your cluster
 
 kubed uses your own kubeconfig and talks only to your cluster's API server,
-plus AWS pricing APIs on Amazon EKS. It sends nothing anywhere else.
+plus AWS's own APIs for prices and costs on Amazon EKS. It sends nothing anywhere else.
 `--readonly` turns off every action that changes the cluster.
