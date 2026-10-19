@@ -1,0 +1,984 @@
+{
+ "note": "kubed-qa118c on staging, QA round 118: weba and webb went back and were restarted before kubed started. Trimmed from kubectl get -o json.",
+ "items": [
+  {
+   "apiVersion": "apps/v1",
+   "kind": "Deployment",
+   "metadata": {
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f",
+    "creationTimestamp": "2026-10-15T11:22:32Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "5"
+    },
+    "generation": 5
+   },
+   "spec": {
+    "replicas": 2,
+    "template": {
+     "metadata": {
+      "annotations": {
+       "kubectl.kubernetes.io/restartedAt": "2026-10-15T16:54:07+05:30"
+      },
+      "labels": {
+       "app": "weba"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.25"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "availableReplicas": 2,
+    "conditions": [
+     {
+      "lastTransitionTime": "2026-10-15T11:22:43Z",
+      "lastUpdateTime": "2026-10-15T11:22:43Z",
+      "message": "Deployment has minimum availability.",
+      "reason": "MinimumReplicasAvailable",
+      "status": "True",
+      "type": "Available"
+     },
+     {
+      "lastTransitionTime": "2026-10-15T11:22:32Z",
+      "lastUpdateTime": "2026-10-15T11:24:10Z",
+      "message": "ReplicaSet \"weba-97c6468c\" has successfully progressed.",
+      "reason": "NewReplicaSetAvailable",
+      "status": "True",
+      "type": "Progressing"
+     }
+    ],
+    "observedGeneration": 5,
+    "readyReplicas": 2,
+    "replicas": 2,
+    "terminatingReplicas": 0,
+    "updatedReplicas": 2
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "Deployment",
+   "metadata": {
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868",
+    "creationTimestamp": "2026-10-15T11:22:34Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "6"
+    },
+    "generation": 6
+   },
+   "spec": {
+    "replicas": 2,
+    "template": {
+     "metadata": {
+      "annotations": {
+       "kubectl.kubernetes.io/restartedAt": "2026-10-15T16:54:32+05:30"
+      },
+      "labels": {
+       "app": "webb"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.27"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "availableReplicas": 2,
+    "conditions": [
+     {
+      "lastTransitionTime": "2026-10-15T11:22:43Z",
+      "lastUpdateTime": "2026-10-15T11:22:43Z",
+      "message": "Deployment has minimum availability.",
+      "reason": "MinimumReplicasAvailable",
+      "status": "True",
+      "type": "Available"
+     },
+     {
+      "lastTransitionTime": "2026-10-15T11:22:34Z",
+      "lastUpdateTime": "2026-10-15T11:24:34Z",
+      "message": "ReplicaSet \"webb-555859f968\" has successfully progressed.",
+      "reason": "NewReplicaSetAvailable",
+      "status": "True",
+      "type": "Progressing"
+     }
+    ],
+    "observedGeneration": 6,
+    "readyReplicas": 2,
+    "replicas": 2,
+    "terminatingReplicas": 0,
+    "updatedReplicas": 2
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "ReplicaSet",
+   "metadata": {
+    "name": "weba-5478db5cfd",
+    "namespace": "kubed-qa118c",
+    "uid": "0a3c8522-671e-4174-adbc-57273860cb8d",
+    "creationTimestamp": "2026-10-15T11:22:32Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "1"
+    },
+    "ownerReferences": [
+     {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "weba",
+      "uid": "700b35c9-671a-4792-a5ef-5a147027b05f",
+      "controller": true
+     }
+    ],
+    "generation": 3
+   },
+   "spec": {
+    "replicas": 0,
+    "template": {
+     "metadata": {
+      "labels": {
+       "app": "weba",
+       "pod-template-hash": "5478db5cfd"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.24"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "replicas": 0
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "ReplicaSet",
+   "metadata": {
+    "name": "weba-97c6468c",
+    "namespace": "kubed-qa118c",
+    "uid": "70951155-15d5-4f56-8e7e-3046dda98519",
+    "creationTimestamp": "2026-10-15T11:24:07Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "5"
+    },
+    "ownerReferences": [
+     {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "weba",
+      "uid": "700b35c9-671a-4792-a5ef-5a147027b05f",
+      "controller": true
+     }
+    ],
+    "generation": 2
+   },
+   "spec": {
+    "replicas": 2,
+    "template": {
+     "metadata": {
+      "annotations": {
+       "kubectl.kubernetes.io/restartedAt": "2026-10-15T16:54:07+05:30"
+      },
+      "labels": {
+       "app": "weba",
+       "pod-template-hash": "97c6468c"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.25"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "replicas": 2,
+    "readyReplicas": 2,
+    "availableReplicas": 2
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "ReplicaSet",
+   "metadata": {
+    "name": "weba-9878d5799",
+    "namespace": "kubed-qa118c",
+    "uid": "b27b4cff-d520-42f7-9d1b-d6e7411ce0d5",
+    "creationTimestamp": "2026-10-15T11:23:18Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "3"
+    },
+    "ownerReferences": [
+     {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "weba",
+      "uid": "700b35c9-671a-4792-a5ef-5a147027b05f",
+      "controller": true
+     }
+    ],
+    "generation": 4
+   },
+   "spec": {
+    "replicas": 0,
+    "template": {
+     "metadata": {
+      "labels": {
+       "app": "weba",
+       "pod-template-hash": "9878d5799"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.27"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "replicas": 0
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "ReplicaSet",
+   "metadata": {
+    "name": "weba-b8589fc69",
+    "namespace": "kubed-qa118c",
+    "uid": "5a1fc4e6-d3da-41b8-9b3e-44459626d8dc",
+    "creationTimestamp": "2026-10-15T11:22:53Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "4",
+     "deployment.kubernetes.io/revision-history": "2"
+    },
+    "ownerReferences": [
+     {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "weba",
+      "uid": "700b35c9-671a-4792-a5ef-5a147027b05f",
+      "controller": true
+     }
+    ],
+    "generation": 8
+   },
+   "spec": {
+    "replicas": 0,
+    "template": {
+     "metadata": {
+      "labels": {
+       "app": "weba",
+       "pod-template-hash": "b8589fc69"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.25"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "replicas": 0
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "ReplicaSet",
+   "metadata": {
+    "name": "webb-555859f968",
+    "namespace": "kubed-qa118c",
+    "uid": "4ed76fb8-48cd-4204-8a33-8551d43929bd",
+    "creationTimestamp": "2026-10-15T11:24:32Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "6"
+    },
+    "ownerReferences": [
+     {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "webb",
+      "uid": "3755b7a3-b577-44e6-b879-eeab74c76868",
+      "controller": true
+     }
+    ],
+    "generation": 2
+   },
+   "spec": {
+    "replicas": 2,
+    "template": {
+     "metadata": {
+      "annotations": {
+       "kubectl.kubernetes.io/restartedAt": "2026-10-15T16:54:32+05:30"
+      },
+      "labels": {
+       "app": "webb",
+       "pod-template-hash": "555859f968"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.27"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "replicas": 2,
+    "readyReplicas": 2,
+    "availableReplicas": 2
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "ReplicaSet",
+   "metadata": {
+    "name": "webb-59ff6cb67d",
+    "namespace": "kubed-qa118c",
+    "uid": "c5093248-e73e-459d-bcb3-d35da6860be8",
+    "creationTimestamp": "2026-10-15T11:22:54Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "4",
+     "deployment.kubernetes.io/revision-history": "2"
+    },
+    "ownerReferences": [
+     {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "webb",
+      "uid": "3755b7a3-b577-44e6-b879-eeab74c76868",
+      "controller": true
+     }
+    ],
+    "generation": 8
+   },
+   "spec": {
+    "replicas": 0,
+    "template": {
+     "metadata": {
+      "labels": {
+       "app": "webb",
+       "pod-template-hash": "59ff6cb67d"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.25"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "replicas": 0
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "ReplicaSet",
+   "metadata": {
+    "name": "webb-7f4d6b9c8d",
+    "namespace": "kubed-qa118c",
+    "uid": "c31e6bdb-a14f-4cef-832d-3fbdc7b1d40d",
+    "creationTimestamp": "2026-10-15T11:23:19Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "5",
+     "deployment.kubernetes.io/revision-history": "3"
+    },
+    "ownerReferences": [
+     {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "webb",
+      "uid": "3755b7a3-b577-44e6-b879-eeab74c76868",
+      "controller": true
+     }
+    ],
+    "generation": 8
+   },
+   "spec": {
+    "replicas": 0,
+    "template": {
+     "metadata": {
+      "labels": {
+       "app": "webb",
+       "pod-template-hash": "7f4d6b9c8d"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.27"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "replicas": 0
+   }
+  },
+  {
+   "apiVersion": "apps/v1",
+   "kind": "ReplicaSet",
+   "metadata": {
+    "name": "webb-86f6fb4d65",
+    "namespace": "kubed-qa118c",
+    "uid": "a636446a-cca3-41de-80b7-9f9a52c4c12e",
+    "creationTimestamp": "2026-10-15T11:22:34Z",
+    "annotations": {
+     "deployment.kubernetes.io/revision": "1"
+    },
+    "ownerReferences": [
+     {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "webb",
+      "uid": "3755b7a3-b577-44e6-b879-eeab74c76868",
+      "controller": true
+     }
+    ],
+    "generation": 3
+   },
+   "spec": {
+    "replicas": 0,
+    "template": {
+     "metadata": {
+      "labels": {
+       "app": "webb",
+       "pod-template-hash": "86f6fb4d65"
+      }
+     },
+     "spec": {
+      "containers": [
+       {
+        "name": "nginx",
+        "image": "nginx:1.24"
+       }
+      ]
+     }
+    }
+   },
+   "status": {
+    "replicas": 0
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb01ff08e60ea",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set weba-5478db5cfd from 0 to 2",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:22:32Z",
+   "lastTimestamp": "2026-10-15T11:22:32Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb0204d10141f",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set webb-86f6fb4d65 from 0 to 2",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:22:34Z",
+   "lastTimestamp": "2026-10-15T11:22:34Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb025619136ba",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set weba-5478db5cfd from 2 to 1",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:22:56Z",
+   "lastTimestamp": "2026-10-15T11:22:56Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb0259ee50be5",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set webb-86f6fb4d65 from 2 to 1",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:22:57Z",
+   "lastTimestamp": "2026-10-15T11:22:57Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb0259591bd60",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set weba-5478db5cfd from 1 to 0",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:22:57Z",
+   "lastTimestamp": "2026-10-15T11:22:57Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb025d164f81c",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set webb-86f6fb4d65 from 1 to 0",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:22:58Z",
+   "lastTimestamp": "2026-10-15T11:22:58Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb02a71c22b37",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set weba-9878d5799 from 0 to 1",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:23:18Z",
+   "lastTimestamp": "2026-10-15T11:23:18Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb02ac937315a",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set webb-7f4d6b9c8d from 0 to 1",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:23:19Z",
+   "lastTimestamp": "2026-10-15T11:23:19Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb02b7c01e442",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set weba-9878d5799 from 1 to 2",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:23:22Z",
+   "lastTimestamp": "2026-10-15T11:23:22Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb024c836fd7a",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set weba-b8589fc69 from 0 to 1",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:22:53Z",
+   "lastTimestamp": "2026-10-15T11:23:43Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb025064e1f07",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set webb-59ff6cb67d from 0 to 1",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:22:54Z",
+   "lastTimestamp": "2026-10-15T11:23:44Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb0256388b3ff",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set weba-b8589fc69 from 1 to 2",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:22:56Z",
+   "lastTimestamp": "2026-10-15T11:23:44Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb0259f8ea5e1",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set webb-59ff6cb67d from 1 to 2",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:22:57Z",
+   "lastTimestamp": "2026-10-15T11:23:45Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb030ad263767",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "(combined from similar events): Scaled up replica set weba-97c6468c from 1 to 2",
+   "count": 4,
+   "firstTimestamp": "2026-10-15T11:23:44Z",
+   "lastTimestamp": "2026-10-15T11:24:08Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb02b7b52c5a8",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set weba-b8589fc69 from 2 to 1",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:23:22Z",
+   "lastTimestamp": "2026-10-15T11:24:08Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "weba.18deb02ba86aa0ea",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set weba-b8589fc69 from 1 to 0",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:23:23Z",
+   "lastTimestamp": "2026-10-15T11:24:10Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "weba",
+    "namespace": "kubed-qa118c",
+    "uid": "700b35c9-671a-4792-a5ef-5a147027b05f"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb02bb8cf63a0",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled up replica set webb-7f4d6b9c8d from 1 to 2",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:23:23Z",
+   "lastTimestamp": "2026-10-15T11:24:11Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb02bb81f226f",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set webb-59ff6cb67d from 2 to 1",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:23:23Z",
+   "lastTimestamp": "2026-10-15T11:24:11Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb02be47f8a8d",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set webb-59ff6cb67d from 1 to 0",
+   "count": 2,
+   "firstTimestamp": "2026-10-15T11:23:24Z",
+   "lastTimestamp": "2026-10-15T11:24:12Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb03bf10a8161",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set webb-7f4d6b9c8d from 2 to 1",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:24:33Z",
+   "lastTimestamp": "2026-10-15T11:24:33Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb030e8e712f2",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "(combined from similar events): Scaled up replica set webb-555859f968 from 1 to 2",
+   "count": 5,
+   "firstTimestamp": "2026-10-15T11:23:45Z",
+   "lastTimestamp": "2026-10-15T11:24:33Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  },
+  {
+   "apiVersion": "v1",
+   "kind": "Event",
+   "metadata": {
+    "name": "webb.18deb03c3ec6eeb7",
+    "namespace": "kubed-qa118c"
+   },
+   "reason": "ScalingReplicaSet",
+   "message": "Scaled down replica set webb-7f4d6b9c8d from 1 to 0",
+   "count": 1,
+   "firstTimestamp": "2026-10-15T11:24:34Z",
+   "lastTimestamp": "2026-10-15T11:24:34Z",
+   "involvedObject": {
+    "kind": "Deployment",
+    "name": "webb",
+    "namespace": "kubed-qa118c",
+    "uid": "3755b7a3-b577-44e6-b879-eeab74c76868"
+   },
+   "source": {
+    "component": "deployment-controller"
+   }
+  }
+ ]
+}

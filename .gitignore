@@ -1,0 +1,10 @@
+/bin/
+/dist/
+*.test
+*.out
+
+# Local notes
+/plans/
+
+# local tool settings
+.claude/

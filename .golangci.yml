@@ -1,0 +1,25 @@
+version: "2"
+linters:
+  enable:
+    - errorlint
+    - gocritic
+    - misspell
+    - unconvert
+    - unparam
+    - revive
+  settings:
+    errcheck:
+      # Best-effort cleanup whose failure changes nothing for the user.
+      exclude-functions:
+        - (io.Closer).Close
+        - (io.ReadCloser).Close
+        - (*os.File).Close
+        - (*compress/gzip.Reader).Close
+        - (github.com/muesli/cancelreader.CancelReader).Close
+        - os.Remove
+        - fmt.Fprintf
+        - golang.org/x/term.Restore
+formatters:
+  enable:
+    - gofmt
+    - goimports
