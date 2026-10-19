@@ -133,8 +133,9 @@ func (a AWS) ClusterBill(ctx context.Context, name string, tags map[string][]str
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
+		key, _ := json.Marshal(k) // JSON quoting, not Go's: a key may hold any character
 		vals, _ := json.Marshal(tags[k])
-		exprs = append(exprs, fmt.Sprintf(`{"Tags":{"Key":%q,"Values":%s}}`, k, vals))
+		exprs = append(exprs, fmt.Sprintf(`{"Tags":{"Key":%s,"Values":%s}}`, key, vals))
 	}
 	tagged := exprs[0]
 	if len(exprs) > 1 {
