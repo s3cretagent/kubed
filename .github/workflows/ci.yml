@@ -8,21 +8,48 @@ on:
 permissions:
   contents: read
 
+# A new push to the same branch or pull request stops the older run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  # internal/ui is most of the test time under the race detector, so its
+  # tests are split across four machines; shard 0 also runs every other
+  # package and builds each release target.
+  race:
+    name: race (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - name: Test (race)
-        run: go test -race -timeout 30m ./...
+      - name: Test internal/ui (race), this shard's part
+        run: |
+          tests=$(go test -list . ./internal/ui | grep '^Test' | awk -v s=${{ matrix.shard }} 'NR % 4 == s' | paste -sd '|' -)
+          go test -race -timeout 20m -run "^(${tests})\$" ./internal/ui
+      - name: Test every other package (race)
+        if: matrix.shard == 0
+        run: go test -race -timeout 20m $(go list ./... | grep -v '/internal/ui$')
       - name: Build every release target
+        if: matrix.shard == 0
         run: |
           for t in darwin/amd64 darwin/arm64 linux/amd64 linux/arm64; do
             GOOS=${t%/*} GOARCH=${t#*/} CGO_ENABLED=0 go build -o /dev/null ./cmd/kubed
           done
+
+  # The one check branch protection asks for: passes only when every shard did.
+  test:
+    needs: race
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.race.result }}" = success
 
   lint:
     runs-on: ubuntu-latest
