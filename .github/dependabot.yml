@@ -1,13 +1,18 @@
 version: 2
 updates:
+  # One weekly pull request for Go modules and one for GitHub Actions,
+  # instead of one per dependency.
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: weekly
     groups:
-      kubernetes:
-        patterns: ["k8s.io/*"]
+      go-modules:
+        patterns: ["*"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
