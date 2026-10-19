@@ -993,7 +993,10 @@ func (m *Model) scale(row view.Row) tea.Cmd {
 	}
 	current, _, _ := unstructured.NestedInt64(row.Obj.Object, "spec", "replicas")
 	m.prompt = inputPrompt(fmt.Sprintf("How many copies of %s should run? (now %d)", refWords(ref), current), fmt.Sprint(current), func(v string) tea.Cmd {
-		n, _ := strconv.Atoi(v)
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 0 || n > maxReplicas { // validReplicas already refused it; never pass it on
+			return nil
+		}
 		if int64(n) == current { // nothing to change, nothing to confirm
 			m.setFlash(fmt.Sprintf("%s already runs %d; nothing changed", refWords(ref), n), nil)
 			return nil
