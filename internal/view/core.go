@@ -610,14 +610,15 @@ var routeNeeds = []schema.GroupVersionResource{kube.Applications, kube.Services}
 // ("1.2 KB"): the bytes themselves aren't text to show.
 type BinaryKey struct{ Name, Size string }
 
-// BinaryKeys are a ConfigMap's binaryData keys, sorted.
+// BinaryKeys are a ConfigMap's binaryData keys, sorted. The size comes
+// from the base64's length: no need to decode it on every frame.
 func BinaryKeys(o *unstructured.Unstructured) []BinaryKey {
 	bin, _, _ := unstructured.NestedStringMap(o.Object, "binaryData")
 	out := make([]BinaryKey, 0, len(bin))
 	for k, v := range bin {
 		size := "size unknown"
-		if b, err := base64.StdEncoding.DecodeString(v); err == nil {
-			size = byteSize(len(b))
+		if pad := len(v) - len(strings.TrimRight(v, "=")); len(v)%4 == 0 && pad <= 2 {
+			size = byteSize(base64.StdEncoding.DecodedLen(len(v)) - pad)
 		}
 		out = append(out, BinaryKey{Name: k, Size: size})
 	}

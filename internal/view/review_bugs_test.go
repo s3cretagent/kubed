@@ -31,3 +31,20 @@ func TestConfigMapDetailListsBinaryKeys(t *testing.T) {
 		t.Errorf("detail with data: %q", lines)
 	}
 }
+
+// Review: the size comes from the base64's length, padding taken off;
+// a length base64 can't have says the size is unknown.
+func TestBinaryKeySizeFromBase64Length(t *testing.T) {
+	cm := &unstructured.Unstructured{Object: map[string]any{"binaryData": map[string]any{
+		"none": "", "one": "AA==", "two": "AAA=", "three": "AAAA", "four": "AAAAAA==", "odd": "AAA", "pads": "AA======"}}}
+	got := map[string]string{}
+	for _, k := range BinaryKeys(cm) {
+		got[k.Name] = k.Size
+	}
+	want := map[string]string{"none": "0 bytes", "one": "1 byte", "two": "2 bytes", "three": "3 bytes", "four": "4 bytes", "odd": "size unknown", "pads": "size unknown"}
+	for k, w := range want {
+		if got[k] != w {
+			t.Errorf("%s: %q, want %q", k, got[k], w)
+		}
+	}
+}

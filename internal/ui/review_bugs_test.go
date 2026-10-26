@@ -174,3 +174,49 @@ func TestEndedForwardToPodSaysNoThrough(t *testing.T) {
 		t.Errorf("to a service: %q", c)
 	}
 }
+
+// Review: the ctx suggestions tagged a context "production" from its name
+// only, while the contexts list follows what kubed decided for the one
+// you're on. They say the same now.
+func TestContextSuggestionsFollowProd(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config")
+	if err := os.WriteFile(path, []byte(`apiVersion: v1
+kind: Config
+clusters:
+- name: c
+  cluster: {server: "https://127.0.0.1:1"}
+users:
+- name: u
+contexts:
+- name: mystery
+  context: {cluster: c, user: u}
+- name: shop-prod
+  context: {cluster: c, user: u}
+`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m := testModel()
+	m.kc = kube.LoadKubeconfig(path)
+	m.opts.ProdPattern = regexp.MustCompile("prod")
+	detail := func(name string) string {
+		t.Helper()
+		for _, s := range m.suggest("ctx ") {
+			if s.name == "ctx "+name {
+				return s.detail
+			}
+		}
+		t.Fatalf("no suggestion for %s", name)
+		return ""
+	}
+	m.context, m.env = "mystery", environment{known: true, prod: true, source: "answer"}
+	if d := detail("mystery"); !strings.Contains(d, "production") {
+		t.Errorf("answered production: %q", d)
+	}
+	m.context, m.env = "shop-prod", environment{known: true, source: "answer"}
+	if d := detail("shop-prod"); strings.Contains(d, "production") {
+		t.Errorf("told not production: %q", d)
+	}
+	if d := detail("mystery"); strings.Contains(d, "production") { // not the one you're on: its name decides
+		t.Errorf("other context: %q", d)
+	}
+}

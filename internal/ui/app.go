@@ -1549,6 +1549,15 @@ func filterObjs(objs []*unstructured.Unstructured, match func(*unstructured.Unst
 	return out
 }
 
+// contextEnv is whether a context is production: what kubed decided for
+// the one you're on, else what its name says.
+func (m *Model) contextEnv(name string) environment {
+	if name == m.context && m.env.known {
+		return m.env
+	}
+	return envFromName(m.opts.ProdPattern, m.opts.NonProdPattern, name)
+}
+
 func (m *Model) contextRows() []view.Row {
 	if m.kc == nil {
 		return nil
@@ -1561,11 +1570,7 @@ func (m *Model) contextRows() []view.Row {
 	for _, n := range names {
 		var kind string
 		tone := view.ToneNormal
-		env := envFromName(m.opts.ProdPattern, m.opts.NonProdPattern, n)
-		if n == m.context && m.env.known { // what kubed decided for the one you're on
-			env = m.env
-		}
-		switch {
+		switch env := m.contextEnv(n); {
 		case env.known && env.prod:
 			kind, tone = "yes", view.ToneBad
 		case env.known:
