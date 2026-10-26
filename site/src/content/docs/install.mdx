@@ -1,0 +1,50 @@
+---
+title: Install
+description: Install kubed with Homebrew, Go, or a download, and run it.
+---
+
+import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+
+<Tabs syncKey="install">
+	<TabItem label="Homebrew">
+		macOS and Linux:
+
+		```bash
+		brew install s3cretagent/tap/kubed
+		```
+
+		Upgrade later with `brew upgrade kubed`.
+	</TabItem>
+	<TabItem label="Go">
+		```bash
+		go install github.com/s3cretagent/kubed/cmd/kubed@latest
+		```
+	</TabItem>
+	<TabItem label="Download">
+		Builds for macOS and Linux (Intel and ARM) are on the [releases page](https://github.com/s3cretagent/kubed/releases). Unpack the archive and put `kubed` on your `PATH`.
+	</TabItem>
+</Tabs>
+
+## Run it
+
+kubed uses the same kubeconfig and the same current cluster as `kubectl`.
+
+```bash
+kubed                          # your current cluster
+kubed --readonly               # look around; nothing can be changed
+kubed --context staging        # another cluster, by its name or part of it
+```
+
+<Aside type="tip">Not sure yet? Start with `kubed --readonly`. You can look at everything, but nothing in the cluster can be changed.</Aside>
+
+## The five keys to know
+
+| Key | What it does |
+|---|---|
+| **enter** | open a row, or see everything you can do with it |
+| **esc** | go back |
+| **f** | find anything by name |
+| **?** | help |
+| **q** | quit |
+
+Next: the [quick start](/kubed/guide/quick-start/).
