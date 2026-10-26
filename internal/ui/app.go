@@ -1561,16 +1561,17 @@ func (m *Model) contextRows() []view.Row {
 	for _, n := range names {
 		var kind string
 		tone := view.ToneNormal
-		switch env := envFromName(m.opts.ProdPattern, m.opts.NonProdPattern, n); {
+		env := envFromName(m.opts.ProdPattern, m.opts.NonProdPattern, n)
+		if n == m.context && m.env.known { // what kubed decided for the one you're on
+			env = m.env
+		}
+		switch {
 		case env.known && env.prod:
 			kind, tone = "yes", view.ToneBad
 		case env.known:
 			kind = "no"
 		default:
 			kind = "unknown" // its name doesn't say; kubed asks the first time you change something
-		}
-		if n == m.context && m.env.known { // what kubed decided for the one you're on
-			kind = map[bool]string{true: "yes", false: "no"}[m.env.prod]
 		}
 		name := strings.TrimSuffix(shortContext(n), "-context") // "-context" says nothing
 		now := ""
@@ -1630,9 +1631,12 @@ func (m *Model) forwardRows() []view.Row {
 			continue
 		}
 		open[f.LocalPort] = true
-		reaches := f.Reaches()
+		reaches, through := f.Reaches(), f.Pod
+		if f.Target == "" {
+			through = "-" // as a live one to a pod says it
+		}
 		rows = append(rows, view.Row{Obj: named(fmt.Sprint(f.LocalPort)), Tone: view.ToneWarn, Cells: []string{
-			fmt.Sprintf("localhost:%d", f.LocalPort), reaches, fmt.Sprint(f.PodPort), f.Pod,
+			fmt.Sprintf("localhost:%d", f.LocalPort), reaches, fmt.Sprint(f.PodPort), through,
 			"Its connection ended a moment ago; checking whether its pod went away"}})
 	}
 	// Ones that stopped stay listed with why, so none vanishes unseen.

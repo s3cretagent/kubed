@@ -38,7 +38,7 @@ func TestUndoWarnsWhenADaemonSetsEarlierVersionFails(t *testing.T) {
 	cs["lastState"] = map[string]any{"terminated": map[string]any{"exitCode": int64(1), "reason": "Error"}}
 	c := mxNewCluster([]runtime.Object{ds, cr("agent-h1", 1, "agent:1"), cr("agent-h2", 2, "agent:bad"), old}, false)
 	m := mxModel(c, 120, 40)
-	if _, fails := m.undoTargetFails(ds); !fails {
+	if !m.undoTargetFails(ds) {
 		t.Error("u on the daemon set doesn't say its earlier version fails")
 	}
 }

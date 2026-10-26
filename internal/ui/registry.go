@@ -265,7 +265,7 @@ var actions = []action{
 			}
 			if off, about, _ := m.undoOff(row.Obj); off != "" {
 				it.disabled, it.off, it.about = true, off, about
-			} else if _, fails := m.undoTargetFails(row.Obj); fails {
+			} else if m.undoTargetFails(row.Obj) {
 				it.about += undoFailsAbout
 			} else {
 				it.about += m.undoFailedAbout(row.Obj)
@@ -1011,7 +1011,7 @@ func appWorkloadItem(key string) func(m *Model, row view.Row, it *menuItem) {
 			}
 		}
 		if gvr, ok := m.client.Resources.Served(kube.ReplicaSets); key == "u" && len(wl) == 1 && ok && m.client.Cache.Synced(gvr) {
-			if _, fails := m.undoTargetFails(wl[0].Obj); fails { // as u on it says
+			if m.undoTargetFails(wl[0].Obj) { // as u on it says
 				it.about += undoFailsAbout
 			} else {
 				it.about += m.undoFailedAbout(wl[0].Obj)
