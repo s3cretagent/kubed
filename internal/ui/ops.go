@@ -1610,17 +1610,43 @@ func undoTarget(r enrich.Rollout) (*enrich.Version, int) {
 	return nil, skipped
 }
 
-// undoTargetFails is the problem of a failing pod of the version u goes
-// back to (as home's Fix checks it).
-func (m *Model) undoTargetFails(o *unstructured.Unstructured) (view.Status, bool) {
+// undoTargetFails says a pod of the version u goes back to is failing
+// (as home's Fix checks it).
+func (m *Model) undoTargetFails(o *unstructured.Unstructured) bool {
 	if k := o.GetKind(); k != "Deployment" && k != "StatefulSet" && k != "DaemonSet" {
-		return view.Status{}, false
+		return false
 	}
 	r := m.enr.RolloutOf(o)
 	if target, _ := undoTarget(r); r.Previous != nil && target != nil {
-		return view.VersionFails(m.enr, o, target.Name)
+		_, fails := view.VersionFails(m.enr, o, target.Name)
+		return fails
 	}
-	return view.Status{}, false
+	return false
+}
+
+// goBackWarnings are the lines both go-back confirms (u, and b in the
+// versions list) add about the version they go back to: how it differs
+// from now, and whether its pods fail now or it failed when it last ran.
+// diffHint ends the "only settings differ" line.
+func (m *Model) goBackWarnings(o *unstructured.Unstructured, target, current *enrich.Version, diffHint string) string {
+	var out string
+	sameImages := strings.Join(target.Images, ",") == strings.Join(current.Images, ",")
+	switch {
+	case target.Settings == current.Settings:
+		out += "\n  Same image: the two differ only by a restart."
+	case sameImages && enrich.OtherBuild(target.Refs, current.Refs):
+		out += "\n  Same tag, but a different build of it (the image digest differs)."
+	case sameImages:
+		out += "\n  Same image: only settings differ (env, config, resources)." + diffHint
+	}
+	if st, fails := view.VersionFails(m.enr, o, target.Name); fails {
+		out += "\n  That version's pods are failing now: " + strings.ToLower(st.Short)
+	} else if why, firm := view.VersionFailedBefore(m.enr, o, target, current); firm {
+		out += "\n  That version failed when it last ran, so going back won't help: " + why
+	} else if why != "" {
+		out += "\n  That version failed when it last ran, so going back may not help: " + why
+	}
+	return out
 }
 
 // undoFailsAbout ends u's menu line when the version it goes back to fails too.
@@ -1693,19 +1719,10 @@ func (m *Model) undoRolloutNow(row view.Row) tea.Cmd {
 	if skipped > 0 {
 		title += fmt.Sprintf("\n  (Skipping %s that only restarted the same thing.)", view.Plural(skipped, "newer version"))
 	}
-	if st, fails := m.undoTargetFails(row.Obj); fails {
-		title += "\n  That version's pods are failing now: " + strings.ToLower(st.Short)
-	} else if why, firm := view.VersionFailedBefore(m.enr, row.Obj, target, r.Current); firm {
-		title += "\n  That version failed when it last ran, so going back won't help: " + why
-	} else if why != "" {
-		title += "\n  That version failed when it last ran, so going back may not help: " + why
-	}
+	title += m.goBackWarnings(row.Obj, target, r.Current, " v shows what differs.")
 	held := view.HeldAfterGoingBack(m.enr, row.Obj)
 	if held != "" {
 		title += heldPodWords(held)
-	}
-	if strings.Join(target.Images, ",") == strings.Join(r.Current.Images, ",") {
-		title += "\n  Same image: only settings differ (env, config, resources). v shows what differs."
 	}
 	switch {
 	case pausedDeploy(row.Obj):
@@ -1950,17 +1967,7 @@ func (m *Model) versionItems(row view.Row) ([]menuItem, enrich.Rollout) {
 			}
 			title := fmt.Sprintf("Go back to revision %d of %s?\n  now:     %s\n  back to: %s", v.Revision, refWords(ref),
 				strings.Join(r.Current.Images, ", "), strings.Join(v.Images, ", "))
-			switch {
-			case v.Settings == r.Current.Settings:
-				title += "\n  Same image: the two differ only by a restart."
-			case strings.Join(v.Images, ",") == strings.Join(r.Current.Images, ",") && enrich.OtherBuild(v.Refs, r.Current.Refs):
-				title += "\n  Same tag, but a different build of it (the image digest differs)."
-			case strings.Join(v.Images, ",") == strings.Join(r.Current.Images, ","):
-				title += "\n  Same image: only settings differ (env, config, resources)."
-			}
-			if st, fails := view.VersionFails(m.enr, row.Obj, v.Name); fails { // as u says it
-				title += "\n  That version's pods are failing now: " + strings.ToLower(st.Short)
-			}
+			title += m.goBackWarnings(row.Obj, v, r.Current, "") // as u says it
 			held := view.HeldAfterGoingBack(m.enr, row.Obj)
 			if held != "" {
 				title += heldPodWords(held)
@@ -2228,10 +2235,12 @@ func (m *Model) openNamed(gvr schema.GroupVersionResource, ns, name string) tea.
 	return nil
 }
 
-// showConfig shows a ConfigMap's keys and values.
+// showConfig shows a ConfigMap's keys and values. Its binaryData keys
+// are listed with their size, never their bytes.
 func (m *Model) showConfig(row view.Row) tea.Cmd {
 	data, _, _ := unstructured.NestedStringMap(row.Obj.Object, "data")
-	if len(data) == 0 {
+	bin := view.BinaryKeys(row.Obj)
+	if len(data) == 0 && len(bin) == 0 {
 		m.setFlash("", fmt.Errorf("%s has no values", row.Obj.GetName()))
 		return nil
 	}
@@ -2243,6 +2252,9 @@ func (m *Model) showConfig(row view.Row) tea.Cmd {
 			continue
 		}
 		b.WriteString(styleInfoLabel.Render(k) + "  " + v + "\n")
+	}
+	for _, k := range bin {
+		b.WriteString(styleInfoLabel.Render(k.Name) + "  binary data, " + k.Size + " (not shown)\n")
 	}
 	title := "contents of config map " + row.Obj.GetName() + " in " + row.Obj.GetNamespace()
 	return func() tea.Msg { return pagerMsg{title: title, content: b.String()} }

@@ -172,7 +172,7 @@ func (m *Model) suggest(typed string) []suggestion {
 		for i := range out {
 			name := strings.TrimPrefix(out[i].name, "ctx ")
 			out[i].show = "ctx " + strings.TrimSuffix(shortContext(name), "-context")
-			if env := envFromName(m.opts.ProdPattern, m.opts.NonProdPattern, name); env.known && env.prod {
+			if env := m.contextEnv(name); env.known && env.prod { // as the contexts list says it
 				out[i].detail = "production"
 			}
 			if name == m.context {

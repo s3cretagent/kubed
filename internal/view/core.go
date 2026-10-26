@@ -2,6 +2,7 @@ package view
 
 import (
 	"cmp"
+	"encoding/base64"
 	"fmt"
 	"maps"
 	"slices"
@@ -203,6 +204,9 @@ func init() {
 		Detail: func(e *enrich.Enricher, o *unstructured.Unstructured) []string {
 			data, _, _ := unstructured.NestedMap(o.Object, "data")
 			keys := slices.Sorted(maps.Keys(data))
+			for _, k := range BinaryKeys(o) {
+				keys = append(keys, k.Name+" (binary, "+k.Size+")")
+			}
 			if len(keys) == 0 {
 				return []string{"Keys     none: it is empty", argoLine(e, o)}
 			}
@@ -601,3 +605,36 @@ func claimStatus(e *enrich.Enricher, o *unstructured.Unstructured) (string, Tone
 // routeNeeds: ingresses and routes say when the service they send to
 // isn't there, from the services list.
 var routeNeeds = []schema.GroupVersionResource{kube.Applications, kube.Services}
+
+// BinaryKey is a ConfigMap's binaryData key and how big its value is
+// ("1.2 KB"): the bytes themselves aren't text to show.
+type BinaryKey struct{ Name, Size string }
+
+// BinaryKeys are a ConfigMap's binaryData keys, sorted. The size comes
+// from the base64's length: no need to decode it on every frame.
+func BinaryKeys(o *unstructured.Unstructured) []BinaryKey {
+	bin, _, _ := unstructured.NestedStringMap(o.Object, "binaryData")
+	out := make([]BinaryKey, 0, len(bin))
+	for k, v := range bin {
+		size := "size unknown"
+		if pad := len(v) - len(strings.TrimRight(v, "=")); len(v)%4 == 0 && pad <= 2 {
+			size = byteSize(base64.StdEncoding.DecodedLen(len(v)) - pad)
+		}
+		out = append(out, BinaryKey{Name: k, Size: size})
+	}
+	slices.SortFunc(out, func(a, b BinaryKey) int { return cmp.Compare(a.Name, b.Name) })
+	return out
+}
+
+// byteSize is a size in bytes as people read it: "300 bytes", "1.2 KB", "3.4 MB".
+func byteSize(n int) string {
+	switch {
+	case n == 1:
+		return "1 byte"
+	case n < 1<<10:
+		return fmt.Sprintf("%d bytes", n)
+	case n < 1<<20:
+		return fmt.Sprintf("%.1f KB", float64(n)/(1<<10))
+	}
+	return fmt.Sprintf("%.1f MB", float64(n)/(1<<20))
+}
