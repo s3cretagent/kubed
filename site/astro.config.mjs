@@ -7,6 +7,8 @@ const page = (slug, label) => ({ slug, ...(label ? { label } : {}) });
 export default defineConfig({
 	site: 'https://s3cretagent.github.io',
 	base: '/kubed',
+	// The guide used to have an overview page; its address now opens the quick start.
+	redirects: { '/guide': '/kubed/guide/quick-start/' },
 	integrations: [
 		starlight({
 			title: 'kubed',
