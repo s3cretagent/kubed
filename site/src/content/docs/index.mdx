@@ -1,0 +1,48 @@
+---
+title: kubed
+description: Kubernetes tells you what is running. kubed tells you what is wrong, and how to fix it.
+template: splash
+hero:
+  tagline: Kubernetes tells you what is running. kubed tells you what is wrong, and how to fix it.
+  actions:
+    - text: Install
+      link: /kubed/install/
+      icon: right-arrow
+    - text: Read the guide
+      link: /kubed/guide/
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/s3cretagent/kubed
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<img src="/kubed/media/kubed-demo.gif" alt="kubed: apps with the broken ones first, the Enter menu, the crash logs, what changed, and going back a version" style="width:100%;border-radius:8px" />
+
+```bash
+brew install s3cretagent/tap/kubed
+kubed
+```
+
+<CardGrid>
+	<Card title="Apps, not pods" icon="list-format">
+		Pods are grouped into the apps you ship (ArgoCD apps, or by Helm and app labels), with the broken ones on top.
+	</Card>
+	<Card title="The reason, not just the status" icon="magnifier">
+		"Can't pull image: that image or tag doesn't exist", "keeps running out of memory: limit 512Mi", with the error line from the crashed run's logs.
+	</Card>
+	<Card title="A Fix line for each problem" icon="approve-check">
+		What to do next, and the key that does it: go back a version, change the image, restart, scale or edit.
+	</Card>
+	<Card title="What changed, and when" icon="seti:clock">
+		New versions, go-backs, restarts, scaling and crashes on one timeline, worked out from what Kubernetes keeps.
+	</Card>
+	<Card title="Safe on production" icon="warning">
+		Production shows in red, every change asks you to type the name of what you change, and `--readonly` turns changes off.
+	</Card>
+	<Card title="Costs on Amazon EKS" icon="seti:default">
+		What your cluster, each node and each app cost, from your own AWS bill and live spot prices.
+	</Card>
+</CardGrid>
