@@ -1,8 +1,8 @@
 # kubed
 
-**Kubernetes tells you what is running. kubed tells you what is wrong, and how to fix it.**
+**The simplest way to run Kubernetes from your terminal.**
 
-kubed is a terminal app for running Kubernetes. Open it and you see your
+There is nothing to memorise. Open kubed and you see your
 apps, with the broken ones first. For each one it says in plain words what
 is wrong (from the pod's status, its events and its last logs) and what to
 do next, with the key that does it. Every screen shows the keys that work on
