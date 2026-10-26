@@ -3,12 +3,13 @@ title: kubed
 description: Kubernetes tells you what is running. kubed tells you what is wrong, and how to fix it.
 template: splash
 hero:
-  tagline: Kubernetes tells you what is running. kubed tells you what is wrong, and how to fix it.
+  title: Know what's broken, and how to fix it
+  tagline: kubed is a terminal app for Kubernetes. It opens on your apps with the broken ones first, and tells you in plain words what is wrong and what to do next.
   actions:
-    - text: Install
+    - text: Get started
       link: /kubed/install/
       icon: right-arrow
-    - text: Read the guide
+    - text: See the guide
       link: /kubed/guide/
       variant: minimal
     - text: GitHub
@@ -17,32 +18,77 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 
-<img src="/kubed/media/kubed-demo.gif" alt="kubed: apps with the broken ones first, the Enter menu, the crash logs, what changed, and going back a version" style="width:100%;border-radius:8px" />
+<img src="/kubed/media/kubed-demo.gif" alt="kubed: apps with the broken ones first, the Enter menu, the crash logs, what changed, and going back a version" style="width:100%;border-radius:10px;box-shadow:0 8px 30px rgb(0 0 0 / 25%)" />
 
-```bash
-brew install s3cretagent/tap/kubed
-kubed
-```
+## The problem
+
+- Kubernetes shows you **status**: `CrashLoopBackOff`, `ImagePullBackOff`, `OOMKilled`.
+- Finding the **reason** means `describe`, then events, then logs, across pods.
+- Nothing tells you **what changed** before it broke.
+- On production, one wrong command in the wrong context is easy to make.
+
+## What kubed does
 
 <CardGrid>
 	<Card title="Apps, not pods" icon="list-format">
-		Pods are grouped into the apps you ship (ArgoCD apps, or by Helm and app labels), with the broken ones on top.
+		- Pods grouped into the apps you ship
+		- ArgoCD apps, or Helm and app labels
+		- Broken ones on top
 	</Card>
-	<Card title="The reason, not just the status" icon="magnifier">
-		"Can't pull image: that image or tag doesn't exist", "keeps running out of memory: limit 512Mi", with the error line from the crashed run's logs.
+	<Card title="The reason, not the status" icon="magnifier">
+		- "Can't pull image: that image or tag doesn't exist"
+		- "Keeps running out of memory: limit 512Mi"
+		- The error line from the crashed run's logs
 	</Card>
 	<Card title="A Fix line for each problem" icon="approve-check">
-		What to do next, and the key that does it: go back a version, change the image, restart, scale or edit.
+		- What to do next, in plain words
+		- The key that does it
+		- Go back, change image, restart, scale, edit
 	</Card>
 	<Card title="What changed, and when" icon="seti:clock">
-		New versions, go-backs, restarts, scaling and crashes on one timeline, worked out from what Kubernetes keeps.
+		- New versions and go-backs
+		- Restarts, scaling and crashes
+		- One timeline per app, last 24 hours
 	</Card>
 	<Card title="Safe on production" icon="warning">
-		Production shows in red, every change asks you to type the name of what you change, and `--readonly` turns changes off.
+		- Production shows in red
+		- Every change asks you to type its name
+		- `--readonly` turns changes off
 	</Card>
 	<Card title="Costs on Amazon EKS" icon="seti:default">
-		What your cluster, each node and each app cost, from your own AWS bill and live spot prices.
+		- Per cluster, node and app
+		- From your own AWS bill
+		- Live spot prices
 	</Card>
+</CardGrid>
+
+## Try it in a minute
+
+<Steps>
+
+1. Install it:
+
+   ```bash
+   brew install s3cretagent/tap/kubed
+   ```
+
+2. Run it. It uses the same cluster as `kubectl`:
+
+   ```bash
+   kubed
+   ```
+
+3. Press **enter** on any app to see everything you can do with it. **esc** goes back, **?** shows help.
+
+</Steps>
+
+## Learn more
+
+<CardGrid>
+	<LinkCard title="Quick start" description="Your first five minutes with kubed." href="/kubed/guide/quick-start/" />
+	<LinkCard title="When something is wrong" description="Find the cause and what fixes it." href="/kubed/guide/when-something-is-wrong/" />
+	<LinkCard title="Making changes safely" description="Go back a version, restart, scale, edit." href="/kubed/guide/making-changes-safely/" />
+	<LinkCard title="kubed and k9s" description="How they differ, and when to use which." href="/kubed/compared/" />
 </CardGrid>

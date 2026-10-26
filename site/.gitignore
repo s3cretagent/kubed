@@ -21,6 +21,6 @@ pnpm-debug.log*
 .DS_Store
 
 # made from ../docs by scripts/sync-docs.mjs
-src/content/docs/guide.md
+src/content/docs/guide/*.md
 src/content/docs/how-it-works.md
 public/media/
