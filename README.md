@@ -96,6 +96,7 @@ The five keys to know:
 
 ## Learn more
 
+- **[Docs site](https://s3cretagent.github.io/kubed/)**: the guide, with search.
 - **[Using kubed](docs/GUIDE.md)**: everyday use, fixing problems, logs,
   making changes safely, production clusters, costs, and what to do when it
   can't connect.
