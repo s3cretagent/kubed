@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -141,7 +142,7 @@ func TestClusterBillOnlyKubernetes(t *testing.T) {
 	}()
 
 	tags := ClusterTags("p-1234-aps1-01-k8s-cluster", map[string]string{"Cluster": "p-1234-aps1-01", "Team": "core", "clusterid": "62e8"})
-	if !contains(tags["Cluster"], "p-1234-aps1-01") || tags["Team"] != nil || tags["clusterid"] != nil {
+	if !slices.Contains(tags["Cluster"], "p-1234-aps1-01") || tags["Team"] != nil || tags["clusterid"] != nil {
 		t.Errorf("only tags naming the cluster count: %v", tags)
 	}
 	b, err := AWS{Region: "ap-south-1"}.ClusterBill(context.Background(), "p-1234-aps1-01-k8s-cluster", tags, time.Date(2026, 10, 6, 9, 0, 0, 0, time.UTC))

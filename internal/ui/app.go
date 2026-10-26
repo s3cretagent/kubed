@@ -525,7 +525,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						again = next
 					}
 					m.setFlash("", fmt.Errorf("port-forward localhost:%d stopped: pod %s went away. %s", f.LocalPort, f.Pod, next))
-					m.noteStopped(stoppedForward{port: f.LocalPort, podPort: f.PodPort, target: orPod(f.Target, f.Pod), why: "pod " + f.Pod + " went away", again: again, at: time.Now()})
+					m.noteStopped(stoppedForward{port: f.LocalPort, podPort: f.PodPort, target: f.Reaches(), why: "pod " + f.Pod + " went away", again: again, at: time.Now()})
 					continue
 				}
 			}
@@ -535,7 +535,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			hint, note := forwardStopWords(f.Failing(), f.PodPort)
 			m.setFlash("", fmt.Errorf("port-forward localhost:%d stopped: %s. %s F starts it again", f.LocalPort, why, hint))
-			m.noteStopped(stoppedForward{port: f.LocalPort, podPort: f.PodPort, target: orPod(f.Target, f.Pod),
+			m.noteStopped(stoppedForward{port: f.LocalPort, podPort: f.PodPort, target: f.Reaches(),
 				why: fmt.Sprintf("%s (%s)", why, note), at: time.Now()})
 		}
 
@@ -888,17 +888,23 @@ func (m *Model) switchContext(ctx string) tea.Cmd {
 // restarts: the pod's container is started again when it stops (not a
 // job's pod that ran once).
 func (m *Model) restarts(src logSource) bool {
-	gvr, ok := m.client.Resources.Served(kube.Pods)
-	if !ok {
-		return true
-	}
-	o, ok := m.client.Cache.Get(gvr, src.ns, src.pod)
+	o, ok := m.cachedPod(src.ns, src.pod)
 	if !ok {
 		return true
 	}
 	policy, _, _ := unstructured.NestedString(o.Object, "spec", "restartPolicy")
 	phase, _, _ := unstructured.NestedString(o.Object, "status", "phase")
 	return policy != "Never" && phase != "Succeeded" && phase != "Failed"
+}
+
+// cachedPod is a pod from kubed's cache; ok is false when the cluster
+// serves no pods or the cache doesn't have it.
+func (m *Model) cachedPod(ns, name string) (*unstructured.Unstructured, bool) {
+	gvr, ok := m.client.Resources.Served(kube.Pods)
+	if !ok {
+		return nil, false
+	}
+	return m.client.Cache.Get(gvr, ns, name)
 }
 
 // noticeNewPods says, once each, when a workload whose logs you follow
@@ -960,7 +966,7 @@ func (m *Model) notStartedYet(src logSource) string {
 		if err != nil || p.Status.Phase != corev1.PodPending {
 			return ""
 		}
-		for _, cs := range append(append([]corev1.ContainerStatus(nil), p.Status.ContainerStatuses...), p.Status.InitContainerStatuses...) {
+		for _, cs := range view.AllStatuses(p) {
 			if cs.State.Running != nil || cs.State.Terminated != nil || cs.LastTerminationState.Terminated != nil {
 				return "" // one ran: it may have logs
 			}
@@ -988,11 +994,10 @@ func (m *Model) notStartedYet(src logSource) string {
 // waitingToRestart: the pod's container (the logs' one) crashed and waits
 // for Kubernetes to start it again.
 func (m *Model) waitingToRestart(src logSource) bool {
-	gvr, ok := m.client.Resources.Served(kube.Pods)
-	if !ok || src.pod == "" {
+	if src.pod == "" {
 		return false
 	}
-	o, ok := m.client.Cache.Get(gvr, src.ns, src.pod)
+	o, ok := m.cachedPod(src.ns, src.pod)
 	if !ok {
 		return false
 	}
@@ -1000,7 +1005,7 @@ func (m *Model) waitingToRestart(src logSource) bool {
 	if err != nil {
 		return false
 	}
-	for _, cs := range append(append([]corev1.ContainerStatus(nil), p.Status.ContainerStatuses...), p.Status.InitContainerStatuses...) { // a sidecar or setup step too
+	for _, cs := range view.AllStatuses(p) { // a sidecar or setup step too
 		if (cs.Name == src.container || (src.container == "" && len(p.Status.ContainerStatuses) == 1)) &&
 			(cs.State.Waiting != nil && cs.State.Waiting.Reason == "CrashLoopBackOff" || cs.State.Terminated != nil && cs.State.Terminated.Reason != "Completed" && cs.RestartCount > 0) {
 			return true
@@ -1013,11 +1018,7 @@ func (m *Model) howItStopped(src logSource) string {
 	if src.pod == "" || m.client == nil {
 		return ""
 	}
-	gvr, ok := m.client.Resources.Served(kube.Pods)
-	if !ok {
-		return ""
-	}
-	o, ok := m.client.Cache.Get(gvr, src.ns, src.pod)
+	o, ok := m.cachedPod(src.ns, src.pod)
 	if !ok {
 		return ""
 	}
@@ -1025,7 +1026,7 @@ func (m *Model) howItStopped(src logSource) string {
 	if err != nil {
 		return ""
 	}
-	for _, cs := range append(append([]corev1.ContainerStatus(nil), p.Status.ContainerStatuses...), p.Status.InitContainerStatuses...) { // a sidecar or setup step too
+	for _, cs := range view.AllStatuses(p) { // a sidecar or setup step too
 		// Before a restart: how that run ended. Live logs that ended (a
 		// cron job's run, a finished job): how this one ended.
 		t := cs.State.Terminated
@@ -1558,7 +1559,8 @@ func (m *Model) contextRows() []view.Row {
 	}
 	rows := make([]view.Row, 0, len(names))
 	for _, n := range names {
-		kind, tone := "", view.ToneNormal
+		var kind string
+		tone := view.ToneNormal
 		switch env := envFromName(m.opts.ProdPattern, m.opts.NonProdPattern, n); {
 		case env.known && env.prod:
 			kind, tone = "yes", view.ToneBad
@@ -1582,7 +1584,7 @@ func (m *Model) contextRows() []view.Row {
 		if region == "" && n == m.context && m.enr != nil { // the one you're on: kubed knows its region
 			region = m.enr.ClusterSummary().Region
 		}
-		rows = append(rows, view.Row{Obj: named(n), Cells: []string{name, kind, orDash(region), now}, Tone: tone})
+		rows = append(rows, view.Row{Obj: named(n), Cells: []string{name, kind, view.OrDash(region), now}, Tone: tone})
 	}
 	return rows
 }
@@ -1601,10 +1603,7 @@ func (m *Model) forwardRows() []view.Row {
 		if err := f.Err(); err != nil {
 			status, tone = err.Error(), view.ToneBad
 		}
-		reaches := f.Target // "service web"
-		if reaches == "" {
-			reaches = "pod " + f.Pod
-		}
+		reaches := f.Reaches() // "service web"
 		through := f.Pod
 		if f.Target == "" {
 			through = "-" // it reaches the pod itself: no need to name it twice
@@ -1631,10 +1630,7 @@ func (m *Model) forwardRows() []view.Row {
 			continue
 		}
 		open[f.LocalPort] = true
-		reaches := f.Target
-		if reaches == "" {
-			reaches = "pod " + f.Pod
-		}
+		reaches := f.Reaches()
 		rows = append(rows, view.Row{Obj: named(fmt.Sprint(f.LocalPort)), Tone: view.ToneWarn, Cells: []string{
 			fmt.Sprintf("localhost:%d", f.LocalPort), reaches, fmt.Sprint(f.PodPort), f.Pod,
 			"Its connection ended a moment ago; checking whether its pod went away"}})
@@ -1745,14 +1741,6 @@ func (m *Model) portTaken(port int) bool {
 	return false
 }
 
-// orPod is a forward's target, or its pod when it reached one directly.
-func orPod(target, pod string) string {
-	if target != "" {
-		return target
-	}
-	return "pod " + pod
-}
-
 func (m *Model) resourceRows() []view.Row {
 	if m.client == nil {
 		return nil
@@ -1766,7 +1754,7 @@ func (m *Model) resourceRows() []view.Row {
 			scope = "true"
 		}
 		rows = append(rows, view.Row{Obj: named(name),
-			Cells: []string{name, strings.Join(resourceAliases(res), " "), res.Kind, orDash(res.GVR.Group), scope}})
+			Cells: []string{name, strings.Join(resourceAliases(res), " "), res.Kind, view.OrDash(res.GVR.Group), scope}})
 	}
 	return rows
 }

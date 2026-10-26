@@ -274,13 +274,7 @@ func TestScaleRejectsSlips(t *testing.T) {
 	}
 }
 
-func TestLineDiff(t *testing.T) {
-	a := "kind: Deployment\nspec:\n  replicas: 2\n  paused: false\n"
-	b := "kind: Deployment\nspec:\n  replicas: 3\n  paused: false\n"
-	got := lineDiff(a, b, 10)
-	if strings.Join(got, "|") != "  -   replicas: 2|  +   replicas: 3" {
-		t.Errorf("got %q", got)
-	}
+func TestDropEditNotes(t *testing.T) {
 	if notes := dropEditNotes([]byte("# kubed: bad\n# kubed: fix it\nkind: Pod\n")); string(notes) != "kind: Pod\n" {
 		t.Errorf("notes not dropped: %q", notes)
 	}

@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -158,55 +159,9 @@ func podObject(p *corev1.Pod) *unstructured.Unstructured {
 	return &unstructured.Unstructured{Object: obj}
 }
 
-// PodStatus reproduces the STATUS column of `kubectl get pods`.
-func PodStatus(p *corev1.Pod) string {
-	reason := string(p.Status.Phase)
-	if p.Status.Reason != "" {
-		reason = p.Status.Reason
-	}
-
-	for i, cs := range p.Status.InitContainerStatuses {
-		switch {
-		case cs.State.Terminated != nil && cs.State.Terminated.ExitCode == 0:
-			continue
-		case cs.State.Terminated != nil:
-			if cs.State.Terminated.Reason != "" {
-				return "Init:" + cs.State.Terminated.Reason
-			}
-			return fmt.Sprintf("Init:ExitCode:%d", cs.State.Terminated.ExitCode)
-		case cs.State.Waiting != nil && cs.State.Waiting.Reason != "" && cs.State.Waiting.Reason != "PodInitializing":
-			return "Init:" + cs.State.Waiting.Reason
-		case isSidecar(p, cs.Name) && cs.Started != nil && *cs.Started:
-			continue
-		default:
-			return fmt.Sprintf("Init:%d/%d", i, len(p.Spec.InitContainers))
-		}
-	}
-
-	running := false
-	for i := len(p.Status.ContainerStatuses) - 1; i >= 0; i-- {
-		cs := p.Status.ContainerStatuses[i]
-		switch {
-		case cs.State.Waiting != nil && cs.State.Waiting.Reason != "":
-			reason = cs.State.Waiting.Reason
-		case cs.State.Terminated != nil && cs.State.Terminated.Reason != "":
-			reason = cs.State.Terminated.Reason
-		case cs.State.Terminated != nil:
-			reason = fmt.Sprintf("ExitCode:%d", cs.State.Terminated.ExitCode)
-		case cs.Ready && cs.State.Running != nil:
-			running = true
-		}
-	}
-	if reason == "Completed" && running {
-		reason = "Running"
-	}
-	if p.DeletionTimestamp != nil {
-		if p.Status.Reason == "NodeLost" {
-			return "Unknown"
-		}
-		return "Terminating"
-	}
-	return reason
+// AllStatuses are a pod's container statuses, then its init containers'.
+func AllStatuses(p *corev1.Pod) []corev1.ContainerStatus {
+	return slices.Concat(p.Status.ContainerStatuses, p.Status.InitContainerStatuses)
 }
 
 func isSidecar(p *corev1.Pod, name string) bool {
@@ -394,7 +349,7 @@ func ContainerRestarts(o *unstructured.Unstructured) map[string]int32 {
 	if err != nil {
 		return out
 	}
-	for _, cs := range append(append([]corev1.ContainerStatus(nil), p.Status.ContainerStatuses...), p.Status.InitContainerStatuses...) {
+	for _, cs := range AllStatuses(p) {
 		out[cs.Name] = cs.RestartCount
 	}
 	return out
@@ -404,7 +359,7 @@ func ContainerRestarts(o *unstructured.Unstructured) map[string]int32 {
 func RunningContainers(o *unstructured.Unstructured) map[string]bool {
 	out := map[string]bool{}
 	if p, err := ToPod(o); err == nil {
-		for _, cs := range append(append([]corev1.ContainerStatus(nil), p.Status.ContainerStatuses...), p.Status.InitContainerStatuses...) {
+		for _, cs := range AllStatuses(p) {
 			out[cs.Name] = cs.State.Running != nil
 		}
 	}

@@ -175,8 +175,8 @@ func (p *pager) append(lines []string) {
 			top = shown[i]
 		}
 	}
-	over := 0
-	if over = len(p.lines) - maxLogLines; over > 0 {
+	over := len(p.lines) - maxLogLines
+	if over > 0 {
 		p.dropped = true // older lines left out: the title says so
 		p.lines = p.lines[over:]
 		if len(p.other) >= over {

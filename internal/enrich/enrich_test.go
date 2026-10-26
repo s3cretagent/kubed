@@ -1815,7 +1815,7 @@ func TestSettingsSeenLateAreUnknown(t *testing.T) {
 		Time: &metav1.Time{Time: now.Add(-5 * time.Minute)}, FieldsType: "FieldsV1", FieldsV1: metav1.NewFieldsV1(`{"f:spec":{"f:template":{}}}`)}})
 	kube.NoteTemplateChange(d)
 	settings := kube.TemplateSettings(d.Object["spec"].(map[string]any)["template"].(map[string]any))
-	if _, ok := kube.SettingsWrittenAt("dep-late", settings); ok {
+	if _, ok := kube.SettingsWrittenAtSure("dep-late", settings); ok {
 		t.Error("a template seen five minutes after it was written was dated")
 	}
 }

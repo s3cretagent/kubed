@@ -96,7 +96,7 @@ func (m *Model) headerFacts() []string {
 		if region == "" && !m.client.Cache.Synced(kube.Nodes) {
 			region = "…" // still loading, not unknown
 		}
-		where = orDash(region) + styleMuted.Render(" · Kubernetes ") + orDash(version)
+		where = view.OrDash(region) + styleMuted.Render(" · Kubernetes ") + view.OrDash(version)
 		if m.costsComing() { // the row it will fill, from the start: nothing jumps when prices arrive
 			costLabel, cost = "Cost", styleMuted.Render("working it out…")
 		}
@@ -436,9 +436,9 @@ func (m *Model) helpContent() string {
 	}
 	row("Cluster", shortContext(m.context))
 	if m.client != nil {
-		row("Kubernetes", orDash(m.client.Version))
+		row("Kubernetes", view.OrDash(m.client.Version))
 		if m.enr != nil {
-			row("Region", orDash(m.enr.ClusterSummary().Region))
+			row("Region", view.OrDash(m.enr.ClusterSummary().Region))
 		}
 		env := "not sure yet: every change asks you to type its name, to be safe"
 		switch {
@@ -833,13 +833,6 @@ func nsLabel(ns string) string {
 		return "all"
 	}
 	return ns
-}
-
-func orDash(s string) string {
-	if s == "" {
-		return "-"
-	}
-	return s
 }
 
 // shortContext turns an EKS ARN context

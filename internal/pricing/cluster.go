@@ -11,8 +11,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -61,21 +63,12 @@ func ClusterTags(name string, tags map[string]string) map[string][]string {
 	}
 	for k, v := range tags {
 		if v == name || strings.Contains(v, name) || (len(v) >= 6 && strings.Contains(name, v)) {
-			if !contains(out[k], v) {
+			if !slices.Contains(out[k], v) {
 				out[k] = append(out[k], v)
 			}
 		}
 	}
 	return out
-}
-
-func contains(s []string, v string) bool {
-	for _, x := range s {
-		if x == v {
-			return true
-		}
-	}
-	return false
 }
 
 // KubernetesServices are the AWS services that run a cluster. Only these
@@ -132,13 +125,8 @@ func (a AWS) ClusterBill(ctx context.Context, name string, tags map[string][]str
 		Key    string
 		Values []string
 	}
-	keys := make([]string, 0, len(tags))
-	for k := range tags {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
 	var exprs []any
-	for _, k := range keys {
+	for _, k := range slices.Sorted(maps.Keys(tags)) {
 		exprs = append(exprs, map[string]values{"Tags": {Key: k, Values: tags[k]}})
 	}
 	tagged := exprs[0]

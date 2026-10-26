@@ -667,7 +667,6 @@ func (m *Model) menu() tea.Cmd {
 		if !a.when(m) {
 			continue
 		}
-		a := a
 		it := menuItem{label: a.label, key: a.key, about: a.about, run: func() tea.Cmd { return m.runAction(a.key, a) }}
 		if a.item != nil {
 			a.item(m, row, &it)
