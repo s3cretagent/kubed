@@ -65,7 +65,7 @@ function guide() {
 
 function howItWorks() {
 	let md = readFileSync(new URL('docs/DEVELOPMENT.md', root), 'utf8');
-	md = md.replace(/^# .*\n/, '').replaceAll('](GUIDE.md)', '](/kubed/guide/)');
+	md = md.replace(/^# .*\n/, '').replaceAll('](GUIDE.md)', '](/kubed/guide/quick-start/)');
 	writeFileSync(new URL('how-it-works.md', out), front('How kubed works', 'Building, testing, and the details behind what kubed shows.', 'docs/DEVELOPMENT.md') + md.replace(/^\n+/, ''));
 }
 
