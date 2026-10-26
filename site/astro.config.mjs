@@ -12,7 +12,7 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'kubed',
-			description: 'A terminal app for running Kubernetes: your apps, broken ones first, with what is wrong and how to fix it.',
+			description: 'The simplest way to run Kubernetes from your terminal.',
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/s3cretagent/kubed' }],
 			editLink: { baseUrl: 'https://github.com/s3cretagent/kubed/edit/main/' },
 			sidebar: [
