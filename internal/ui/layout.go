@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
 	"slices"
@@ -366,10 +367,7 @@ func (m *Model) boxTitle() string {
 			name = "ArgoCD apps"
 		}
 		if m.loc.res.Namespaced {
-			scope = m.namespace
-			if scope == "" {
-				scope = "all"
-			}
+			scope = cmp.Or(m.namespace, "all")
 		}
 	}
 	count := fmt.Sprint(len(m.tbl.rows))

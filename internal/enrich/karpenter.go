@@ -1,6 +1,7 @@
 package enrich
 
 import (
+	"cmp"
 	"sort"
 	"strings"
 
@@ -58,10 +59,7 @@ func (e *Enricher) Node(node *unstructured.Unstructured) NodeInfo {
 	if info.Capacity == "" && info.InstanceType != "" {
 		info.Capacity = capacityOnDemand
 	}
-	zone := info.ZoneID
-	if zone == "" {
-		zone = info.Zone
-	}
+	zone := cmp.Or(info.ZoneID, info.Zone)
 	if e.costs {
 		info.Hourly, info.PriceKnown = e.price(info.Region, info.InstanceType, zone, info.Capacity)
 	}
@@ -88,10 +86,7 @@ func (e *Enricher) price(region, instanceType, zone, capacity string) (float64, 
 
 // PriceSource says where a node's price comes from, in words.
 func (e *Enricher) PriceSource(info NodeInfo) string {
-	zone := info.ZoneID
-	if zone == "" {
-		zone = info.Zone
-	}
+	zone := cmp.Or(info.ZoneID, info.Zone)
 	switch {
 	case info.Capacity == capacitySpot && e.spot != nil && e.spot[info.InstanceType+"/"+zone] > 0:
 		return "live spot price in its zone"

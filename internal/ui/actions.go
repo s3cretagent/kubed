@@ -2,11 +2,13 @@ package ui
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -161,13 +163,8 @@ func (m *Model) decodeSecret(row view.Row) tea.Cmd {
 			return pagerMsg{err: err}
 		}
 		data, _, _ := unstructured.NestedStringMap(obj.Object, "data")
-		keys := make([]string, 0, len(data))
-		for k := range data {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
 		var b strings.Builder
-		for _, k := range keys {
+		for _, k := range slices.Sorted(maps.Keys(data)) {
 			v, err := base64.StdEncoding.DecodeString(data[k])
 			if err != nil {
 				v = []byte("<not base64>")
@@ -257,7 +254,6 @@ func (m *Model) withContainer(row view.Row, fn func(pod *unstructured.Unstructur
 	}
 	items := make([]menuItem, 0, len(containers))
 	for _, c := range containers {
-		c := c
 		about := "" // one of several: nothing to tell them apart by
 		if main == 1 && !init[c] && !isHelper(c) {
 			about = "The app's own container"
@@ -1137,13 +1133,7 @@ func (m *Model) onEditReady(msg editReadyMsg) tea.Cmd {
 		m.setFlash("", msg.err)
 		return nil
 	}
-	editor := os.Getenv("KUBE_EDITOR")
-	if editor == "" {
-		editor = os.Getenv("EDITOR")
-	}
-	if editor == "" {
-		editor = "vi"
-	}
+	editor := cmp.Or(os.Getenv("KUBE_EDITOR"), os.Getenv("EDITOR"), "vi")
 	args := append(strings.Fields(editor), msg.path)
 	cmd := exec.Command(args[0], args[1:]...)
 	return tea.ExecProcess(cmd, func(err error) tea.Msg {
@@ -1281,51 +1271,6 @@ func dropEditNotes(b []byte) []byte {
 
 // maxDiffLines bounds the diff shown before applying an edit.
 const maxDiffLines = 14
-
-// lineDiff lists the lines removed (-) and added (+), in order, at most max.
-func lineDiff(a, b string, limit int) []string {
-	x, y := strings.Split(a, "\n"), strings.Split(b, "\n")
-	// Longest common subsequence over lines; files are small.
-	lcs := make([][]int, len(x)+1)
-	for i := range lcs {
-		lcs[i] = make([]int, len(y)+1)
-	}
-	for i := len(x) - 1; i >= 0; i-- {
-		for j := len(y) - 1; j >= 0; j-- {
-			if x[i] == y[j] {
-				lcs[i][j] = lcs[i+1][j+1] + 1
-			} else {
-				lcs[i][j] = max(lcs[i+1][j], lcs[i][j+1])
-			}
-		}
-	}
-	var out []string
-	more := 0
-	emit := func(l string) {
-		if len(out) < limit {
-			out = append(out, l)
-		} else {
-			more++
-		}
-	}
-	i, j := 0, 0
-	for i < len(x) || j < len(y) {
-		switch {
-		case i < len(x) && j < len(y) && x[i] == y[j]:
-			i, j = i+1, j+1
-		case i < len(x) && (j == len(y) || lcs[i+1][j] >= lcs[i][j+1]):
-			emit("  - " + strings.TrimRight(x[i], " "))
-			i++
-		default:
-			emit("  + " + strings.TrimRight(y[j], " "))
-			j++
-		}
-	}
-	if more > 0 {
-		out = append(out, fmt.Sprintf("  … and %d more changed lines", more))
-	}
-	return out
-}
 
 // savePager writes the pager's text to ~/Downloads (or the home directory
 // when there is no Downloads folder).

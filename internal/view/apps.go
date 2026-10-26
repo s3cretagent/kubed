@@ -739,7 +739,7 @@ func Apps(e *enrich.Enricher, pods, apps, secrets, jobs, workloads []*unstructur
 				}
 			}
 		}
-		if best != "" && !containsApp(argoNamespaces[best], app) {
+		if best != "" && !slices.Contains(argoNamespaces[best], app) {
 			argoNamespaces[best] = append(argoNamespaces[best], app)
 		}
 	}
@@ -754,7 +754,7 @@ func Apps(e *enrich.Enricher, pods, apps, secrets, jobs, workloads []*unstructur
 			argo = full
 		}
 		app := get(argo.Name, o.GetNamespace(), groupArgo, &argo)
-		if !containsApp(argoNamespaces[o.GetNamespace()], app) {
+		if !slices.Contains(argoNamespaces[o.GetNamespace()], app) {
 			argoNamespaces[o.GetNamespace()] = append(argoNamespaces[o.GetNamespace()], app)
 		}
 		add(app, o)
@@ -1434,7 +1434,7 @@ func AppRows(apps []*App) []Row {
 			}
 		}
 		rows = append(rows, Row{Obj: o, Tone: a.Status.Tone, Cells: []string{
-			a.Name, orDash(a.Namespace), a.Status.Short, readyCell(a), fmt.Sprint(a.Restarts), deployed, cost,
+			a.Name, OrDash(a.Namespace), a.Status.Short, readyCell(a), fmt.Sprint(a.Restarts), deployed, cost,
 			whyWords(a.Status),
 		}})
 	}
@@ -1508,10 +1508,7 @@ func cantMakeAll(e *enrich.Enricher, w *unstructured.Unstructured) (made, want i
 	if w.GetDeletionTimestamp() != nil || num(w, "status", "observedGeneration") < w.GetGeneration() {
 		return 0, 0, "", false
 	}
-	want, made = 1, num(w, "status", "replicas") // unset is 1
-	if _, set, _ := unstructured.NestedFieldNoCopy(w.Object, "spec", "replicas"); set {
-		want = num(w, "spec", "replicas")
-	}
+	want, made = wantedReplicas(w), num(w, "status", "replicas")
 	if w.GetKind() == "DaemonSet" { // one on each node it runs on
 		want, made = num(w, "status", "desiredNumberScheduled"), num(w, "status", "currentNumberScheduled")
 	}
@@ -2408,10 +2405,7 @@ func pausedPartwayWords(w *unstructured.Unstructured) string {
 	if w.GetKind() != "Deployment" || !paused || num(w, "status", "observedGeneration") < w.GetGeneration() {
 		return ""
 	}
-	want := int64(1) // unset is 1
-	if _, set, _ := unstructured.NestedFieldNoCopy(w.Object, "spec", "replicas"); set {
-		want = num(w, "spec", "replicas")
-	}
+	want := wantedReplicas(w)
 	updated := num(w, "status", "updatedReplicas")
 	if updated == 0 || updated >= want && num(w, "status", "replicas") <= updated {
 		return "" // not started (a change waits for resume), or done
@@ -2449,10 +2443,7 @@ func rollingOutWords(w *unstructured.Unstructured) string {
 	if w.GetKind() != "Deployment" || paused || num(w, "status", "observedGeneration") < w.GetGeneration() {
 		return ""
 	}
-	want := int64(1) // unset is 1
-	if _, set, _ := unstructured.NestedFieldNoCopy(w.Object, "spec", "replicas"); set {
-		want = num(w, "spec", "replicas")
-	}
+	want := wantedReplicas(w)
 	updated := num(w, "status", "updatedReplicas")
 	old := num(w, "status", "replicas") - updated
 	if updated == 0 || old <= 0 {
@@ -3520,15 +3511,6 @@ func podFullyReady(p *corev1.Pod) bool {
 	return true
 }
 
-func containsApp(list []*App, a *App) bool {
-	for _, x := range list {
-		if x == a {
-			return true
-		}
-	}
-	return false
-}
-
 // namespaceOwner is the ArgoCD app that owns a namespace: the only one
 // running there, or the one named after the namespace.
 // joinsArgoApp: a pod ArgoCD doesn't track still belongs to the ArgoCD
@@ -3569,7 +3551,16 @@ func namespaceOwner(apps []*App, ns string) *App {
 	return nil
 }
 
-func orDash(s string) string {
+// wantedReplicas is a workload's spec.replicas; unset is 1.
+func wantedReplicas(w *unstructured.Unstructured) int64 {
+	if _, set, _ := unstructured.NestedFieldNoCopy(w.Object, "spec", "replicas"); set {
+		return num(w, "spec", "replicas")
+	}
+	return 1
+}
+
+// OrDash shows an empty value as "-".
+func OrDash(s string) string {
 	if s == "" {
 		return "-"
 	}

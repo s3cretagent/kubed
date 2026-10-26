@@ -1,6 +1,7 @@
 package view
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
 	"slices"
@@ -538,10 +539,7 @@ func workloadProblem(e *enrich.Enricher, o *unstructured.Unstructured) []string 
 			c, ok = enrich.Cond{Status: "True", Message: "its last try failed"}, true
 		}
 		if ok && c.Status == "True" {
-			why := c.Message
-			if why == "" {
-				why = c.Reason
-			}
+			why := cmp.Or(c.Message, c.Reason)
 			cause, causeFound := JobCause(e, o)
 			if causeFound && cause != "" {
 				why = cause // what each try ran into, not only that it gave up

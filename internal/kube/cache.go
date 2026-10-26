@@ -599,32 +599,12 @@ func noteSettings(uid types.UID, settings string, at, sure time.Time) {
 	settingsHistory[uid] = h
 }
 
-// SettingsWrittenAt is when a Deployment's pod template was last given
-// these settings (TemplateSettings), as kubed saw; ok is false when not seen.
-func SettingsWrittenAt(uid types.UID, settings string) (time.Time, bool) {
-	settingsMu.Lock()
-	defer settingsMu.Unlock()
-	h := settingsHistory[uid]
-	for i := len(h) - 1; i >= 0; i-- {
-		if h[i].template == settings {
-			return h[i].at, !h[i].at.IsZero()
-		}
-	}
-	return time.Time{}, false
-}
-
-// SettingsWrittenAtSure is SettingsWrittenAt only when that write's time
-// surely is when they were written (not while paused).
+// SettingsWrittenAtSure is when a Deployment's pod template was last given
+// these settings (TemplateSettings), as kubed saw, only when that write's
+// time surely is when they were written (not while paused); ok is false
+// when not seen.
 func SettingsWrittenAtSure(uid types.UID, settings string) (time.Time, bool) {
-	settingsMu.Lock()
-	defer settingsMu.Unlock()
-	h := settingsHistory[uid]
-	for i := len(h) - 1; i >= 0; i-- {
-		if h[i].template == settings {
-			return h[i].sure, !h[i].sure.IsZero()
-		}
-	}
-	return time.Time{}, false
+	return lastWrite(settingsHistory, uid, settings, true)
 }
 
 // templateWrites keeps, per Deployment, each pod template it was given
@@ -667,26 +647,29 @@ func forgetTemplateWrites(uid types.UID) {
 // these settings with this restart stamp (one ReplicaSet's template), as
 // kubed saw; ok is false when not seen.
 func TemplateWrittenAt(uid types.UID, settings, stamp string) (time.Time, bool) {
-	settingsMu.Lock()
-	defer settingsMu.Unlock()
-	h := templateWrites[uid]
-	for i := len(h) - 1; i >= 0; i-- {
-		if h[i].template == settings+"\x00"+stamp {
-			return h[i].at, !h[i].at.IsZero()
-		}
-	}
-	return time.Time{}, false
+	return lastWrite(templateWrites, uid, settings+"\x00"+stamp, false)
 }
 
 // TemplateWrittenAtSure is TemplateWrittenAt only when that write's time
 // surely is when the template was written (not while paused).
 func TemplateWrittenAtSure(uid types.UID, settings, stamp string) (time.Time, bool) {
+	return lastWrite(templateWrites, uid, settings+"\x00"+stamp, true)
+}
+
+// lastWrite finds the newest entry of a Deployment's history in writes
+// with this template, and its time (sure or not); ok is false when it
+// wasn't seen or its time is unknown.
+func lastWrite(writes map[types.UID][]templateSeen, uid types.UID, template string, sure bool) (time.Time, bool) {
 	settingsMu.Lock()
 	defer settingsMu.Unlock()
-	h := templateWrites[uid]
+	h := writes[uid]
 	for i := len(h) - 1; i >= 0; i-- {
-		if h[i].template == settings+"\x00"+stamp {
-			return h[i].sure, !h[i].sure.IsZero()
+		if h[i].template == template {
+			t := h[i].at
+			if sure {
+				t = h[i].sure
+			}
+			return t, !t.IsZero()
 		}
 	}
 	return time.Time{}, false

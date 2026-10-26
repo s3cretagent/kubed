@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"cmp"
 	"fmt"
 	"strings"
 
@@ -242,11 +243,7 @@ func (p *prompt) render(width int) string {
 	case promptMenu:
 		label := func(it menuItem) string {
 			if it.disabled { // so it can't be mistaken for one that works
-				off := it.off
-				if off == "" {
-					off = "off"
-				}
-				return it.label + " · " + off
+				return it.label + " · " + cmp.Or(it.off, "off")
 			}
 			return it.label
 		}

@@ -91,13 +91,19 @@ func (f *Forward) String() string {
 	return fmt.Sprintf("localhost:%d → pod %s in %s, port %d", f.LocalPort, f.Pod, f.Namespace, f.PodPort)
 }
 
+// Reaches is what the forward reaches: its target ("service web"), or
+// its pod when it reached one directly ("pod web-1").
+func (f *Forward) Reaches() string {
+	if f.Target != "" {
+		return f.Target
+	}
+	return "pod " + f.Pod
+}
+
 // Short says what the forward reaches in a few words, for messages:
 // "localhost:8080 now reaches service web, port 80".
 func (f *Forward) Short() string {
-	what := f.Target
-	if what == "" {
-		what = "pod " + f.Pod
-	}
+	what := f.Reaches()
 	if f.Target != "" {
 		// Through a service or deployment, the number is the pod's port,
 		// which can differ from the service's own.
@@ -126,7 +132,7 @@ func (f *Forward) Err() error {
 // forward it came from, not a newer one on the same local port.
 func init() {
 	utilruntime.ErrorHandlers = append(utilruntime.ErrorHandlers,
-		func(ctx context.Context, err error, msg string, _ ...interface{}) {
+		func(ctx context.Context, err error, msg string, _ ...any) {
 			if err == nil || !strings.Contains(msg, "forwarding") && !strings.Contains(msg, "error stream") {
 				return
 			}
@@ -140,12 +146,12 @@ func init() {
 // forward an error belongs to.
 type forwardSink struct{ f *Forward }
 
-func (forwardSink) Init(logr.RuntimeInfo)                    {}
-func (forwardSink) Enabled(int) bool                         { return false }
-func (forwardSink) Info(int, string, ...interface{})         {}
-func (forwardSink) Error(error, string, ...interface{})      {}
-func (s forwardSink) WithValues(...interface{}) logr.LogSink { return s }
-func (s forwardSink) WithName(string) logr.LogSink           { return s }
+func (forwardSink) Init(logr.RuntimeInfo)            {}
+func (forwardSink) Enabled(int) bool                 { return false }
+func (forwardSink) Info(int, string, ...any)         {}
+func (forwardSink) Error(error, string, ...any)      {}
+func (s forwardSink) WithValues(...any) logr.LogSink { return s }
+func (s forwardSink) WithName(string) logr.LogSink   { return s }
 
 // ErrLeftCluster is a forward asked for on a cluster you have since left.
 var ErrLeftCluster = errors.New("the connection it was asked on has closed (you switched cluster or reconnected)")

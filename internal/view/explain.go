@@ -54,7 +54,7 @@ func Explain(e *enrich.Enricher, p *corev1.Pod) Status {
 	}
 
 	// Containers that can't start, in the order they would block.
-	for _, cs := range append(append([]corev1.ContainerStatus{}, p.Status.InitContainerStatuses...), p.Status.ContainerStatuses...) {
+	for _, cs := range slices.Concat(p.Status.InitContainerStatuses, p.Status.ContainerStatuses) {
 		w := cs.State.Waiting
 		if w == nil {
 			continue
@@ -874,7 +874,7 @@ var (
 // the time that normally takes (not a problem yet); a secret or config
 // map mount younger than mountGrace says nothing.
 func mountFailure(e *enrich.Enricher, p *corev1.Pod) (why string, attaching bool) {
-	all := append(append([]corev1.ContainerStatus{}, p.Status.InitContainerStatuses...), p.Status.ContainerStatuses...)
+	all := slices.Concat(p.Status.InitContainerStatuses, p.Status.ContainerStatuses)
 	if len(all) == 0 {
 		return "", false
 	}
@@ -1013,7 +1013,7 @@ const hookFailed = "is killed because its postStart hook failed"
 // (its stop now, or the one before) was Kubernetes killing it because its
 // postStart hook failed, by hookKilled's evidence.
 func KilledByHook(e *enrich.Enricher, p *corev1.Pod, container string, finished time.Time) bool {
-	for _, cs := range append(append([]corev1.ContainerStatus(nil), p.Status.ContainerStatuses...), p.Status.InitContainerStatuses...) {
+	for _, cs := range AllStatuses(p) {
 		if cs.Name != container {
 			continue
 		}

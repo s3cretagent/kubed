@@ -1,6 +1,7 @@
 package view
 
 import (
+	"cmp"
 	"fmt"
 	"strings"
 
@@ -127,10 +128,7 @@ func nodeDetail(e *enrich.Enricher, o *unstructured.Unstructured) []string {
 	}
 	// Not ready: why first, in the node's own words (it may be leaving).
 	if c, ok := enrich.Condition(o, "Ready"); ok && c.Status != "True" {
-		why := strings.Join(strings.Fields(c.Message), " ")
-		if why == "" {
-			why = c.Reason
-		}
+		why := cmp.Or(strings.Join(strings.Fields(c.Message), " "), c.Reason)
 		if o.GetDeletionTimestamp() != nil {
 			why = "it is being removed; " + why
 		}

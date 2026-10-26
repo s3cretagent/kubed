@@ -1,8 +1,10 @@
 package view
 
 import (
+	"cmp"
 	"fmt"
-	"sort"
+	"maps"
+	"slices"
 	"strings"
 	"time"
 
@@ -200,11 +202,7 @@ func init() {
 		},
 		Detail: func(e *enrich.Enricher, o *unstructured.Unstructured) []string {
 			data, _, _ := unstructured.NestedMap(o.Object, "data")
-			keys := make([]string, 0, len(data))
-			for k := range data {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
+			keys := slices.Sorted(maps.Keys(data))
 			if len(keys) == 0 {
 				return []string{"Keys     none: it is empty", argoLine(e, o)}
 			}
@@ -233,11 +231,7 @@ func init() {
 				lines = append(lines, secretLine(es))
 			}
 			data, _, _ := unstructured.NestedMap(o.Object, "data")
-			keys := make([]string, 0, len(data))
-			for k := range data {
-				keys = append(keys, k)
-			}
-			sort.Strings(keys)
+			keys := slices.Sorted(maps.Keys(data))
 			lines = append(lines, "Keys     "+joinOr(keys, ", "))
 			return lines
 		},
@@ -250,10 +244,8 @@ func init() {
 		Main:     "STATUS",
 		Row: func(e *enrich.Enricher, o *unstructured.Unstructured) ([]string, Tone) {
 			status, tone := claimStatus(e, o)
-			size := str(o, "status", "capacity", "storage")
-			if size == "" {
-				size = str(o, "spec", "resources", "requests", "storage") // asked for, not made yet
-			}
+			size := cmp.Or(str(o, "status", "capacity", "storage"),
+				str(o, "spec", "resources", "requests", "storage")) // asked for, not made yet
 			return []string{o.GetName(), status, size, str(o, "spec", "storageClassName"), age(o)}, tone
 		},
 		Detail: func(e *enrich.Enricher, o *unstructured.Unstructured) []string {
@@ -436,10 +428,7 @@ func ingressProblems(e *enrich.Enricher, o *unstructured.Unstructured) []string 
 			}
 		}
 	}
-	class := str(o, "spec", "ingressClassName")
-	if class == "" {
-		class = o.GetAnnotations()["kubernetes.io/ingress.class"]
-	}
+	class := cmp.Or(str(o, "spec", "ingressClassName"), o.GetAnnotations()["kubernetes.io/ingress.class"])
 	lbs, _, _ := unstructured.NestedSlice(o.Object, "status", "loadBalancer", "ingress")
 	if class == "" && len(lbs) == 0 && e.Synced(kube.IngressClasses) { // with an address, a controller took it all the same
 		def := false

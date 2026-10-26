@@ -9,6 +9,7 @@ package pricing
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -107,10 +108,7 @@ func parseSpot(data []byte) (map[string]float64, error) {
 	for _, p := range resp.SpotPriceHistory {
 		// Keyed by zone ID: zone names ("ap-south-1a") map to different
 		// physical zones in different accounts, zone IDs don't.
-		zone := p.AvailabilityZoneID
-		if zone == "" {
-			zone = p.AvailabilityZone
-		}
+		zone := cmp.Or(p.AvailabilityZoneID, p.AvailabilityZone)
 		key := p.InstanceType + "/" + zone
 		if _, seen := out[key]; seen {
 			continue // newest first

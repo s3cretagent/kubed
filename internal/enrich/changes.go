@@ -1,6 +1,7 @@
 package enrich
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
 	"slices"
@@ -795,7 +796,7 @@ func (e *Enricher) changesOver(ns, appName string, now time.Time, window time.Du
 				Detail: "synced again", Health: HealthOK})
 		} else {
 			add(Change{When: when, What: "secret", Namespace: es.GetNamespace(), Object: "externalsecret/" + es.GetName(),
-				Detail: "stopped syncing: " + firstNonEmpty(c.Message, c.Reason), Health: HealthBad})
+				Detail: "stopped syncing: " + cmp.Or(c.Message, c.Reason), Health: HealthBad})
 		}
 	}
 
@@ -955,11 +956,7 @@ func (e *Enricher) changesOver(ns, appName string, now time.Time, window time.Du
 		if at := JobFailedAt(j); !at.IsZero() {
 			when = at // as home and the app's box say
 		}
-		why := c.Message
-		if why == "" {
-			why = c.Reason
-		}
-		why = MessageWords(why)
+		why := MessageWords(cmp.Or(c.Message, c.Reason))
 		if JobCauseOf != nil { // what its tries ran into, as home and its box say
 			if cause, ok := JobCauseOf(e, j); ok && cause != "" {
 				why = cause
@@ -1442,15 +1439,6 @@ func stopWords(reason string, code int64) string {
 		return fmt.Sprintf("stopped with an error (exit %d)", code)
 	}
 	return fmt.Sprintf("stopped: %s (exit %d)", reason, code)
-}
-
-func firstNonEmpty(values ...string) string {
-	for _, v := range values {
-		if v != "" {
-			return v
-		}
-	}
-	return ""
 }
 
 // backSince: the version a Deployment runs now was brought back (a

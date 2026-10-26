@@ -1,7 +1,8 @@
 package enrich
 
 import (
-	"sort"
+	"maps"
+	"slices"
 	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -117,10 +118,5 @@ func PodSecretNames(pod *unstructured.Unstructured) map[string]bool {
 
 // SortedKeys returns map keys in order.
 func SortedKeys(m map[string]bool) []string {
-	out := make([]string, 0, len(m))
-	for k := range m {
-		out = append(out, k)
-	}
-	sort.Strings(out)
-	return out
+	return slices.Sorted(maps.Keys(m))
 }

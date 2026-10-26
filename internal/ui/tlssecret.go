@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"maps"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -94,7 +95,5 @@ func (m *Model) onTLSSecret(msg tlsSecretMsg) {
 	if msg.context != m.context || m.tlsSecrets == nil {
 		return
 	}
-	for k, s := range msg.read {
-		m.tlsSecrets[k] = s
-	}
+	maps.Copy(m.tlsSecrets, msg.read)
 }

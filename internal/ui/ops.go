@@ -1,9 +1,11 @@
 package ui
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"sort"
 	"strings"
@@ -618,7 +620,6 @@ func (m *Model) setImage(row view.Row) tea.Cmd {
 	sort.SliceStable(containers, func(i, j int) bool { return rank(containers[i]) < rank(containers[j]) })
 	items := make([]menuItem, 0, len(containers))
 	for _, c := range containers {
-		c := c
 		about := "Runs " + c[1]
 		switch c[2] {
 		case "init":
@@ -838,7 +839,7 @@ func (m *Model) helmHistory(row view.Row) tea.Cmd {
 				}
 			}
 			fmt.Fprintf(&b, "%-9d %-10s %-16s %-28s %-12s %s\n", r.Revision, view.Age(r.Updated)+" ago", r.Status,
-				truncate(chart, 28), truncate(orDash(app), 12), what)
+				truncate(chart, 28), truncate(view.OrDash(app), 12), what)
 		}
 		return pagerMsg{title: "Helm history of " + rel.Name, content: b.String(), hang: 9 + 1 + 10 + 1 + 16 + 1 + 28 + 1 + 12 + 1}
 	}
@@ -847,10 +848,7 @@ func (m *Model) helmHistory(row view.Row) tea.Cmd {
 // --- RBAC ---
 
 func (m *Model) canI() tea.Cmd {
-	ns := m.namespace
-	if ns == "" {
-		ns = "default"
-	}
+	ns := cmp.Or(m.namespace, "default")
 	m.busy = "checking your permissions in " + ns
 	return func() tea.Msg {
 		ctx, cancel := apiCtx()
@@ -1945,7 +1943,6 @@ func (m *Model) versionItems(row view.Row) ([]menuItem, enrich.Rollout) {
 			label += fmt.Sprintf("  · %d serving", v.Ready)
 		}
 		label += imgs
-		v := v
 		goBack := func() tea.Cmd { //nolint:unparam // a menu item's run: the confirm prompt does the work
 			if m.writesLocked() {
 				m.setFlash("", m.lockedReason())
@@ -2190,7 +2187,7 @@ func (m *Model) argoDiff(row view.Row) tea.Cmd {
 	fmt.Fprintf(&b, "%-17s %-9s %-44s %s\n", "GIT", "HEALTH", "WHAT", "NAMESPACE")
 	differs := 0
 	for _, it := range items {
-		line := fmt.Sprintf("%-17s %-9s %-44s %s", it.sync, orDash(it.health), truncate(it.what, 44), orDash(it.ns))
+		line := fmt.Sprintf("%-17s %-9s %-44s %s", it.sync, view.OrDash(it.health), truncate(it.what, 44), view.OrDash(it.ns))
 		switch {
 		case it.sync == "differs from Git":
 			differs++
@@ -2238,13 +2235,8 @@ func (m *Model) showConfig(row view.Row) tea.Cmd {
 		m.setFlash("", fmt.Errorf("%s has no values", row.Obj.GetName()))
 		return nil
 	}
-	keys := make([]string, 0, len(data))
-	for k := range data {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
 	var b strings.Builder
-	for _, k := range keys {
+	for _, k := range slices.Sorted(maps.Keys(data)) {
 		v := data[k]
 		if strings.Contains(v, "\n") {
 			b.WriteString(styleInfoLabel.Render(k) + "\n" + v + "\n\n")

@@ -7,10 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -107,12 +108,7 @@ func (k *Kubeconfig) Contexts() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	names := make([]string, 0, len(raw.Contexts))
-	for name := range raw.Contexts {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	return names, nil
+	return slices.Sorted(maps.Keys(raw.Contexts)), nil
 }
 
 // CurrentContext returns the kubeconfig's current-context.
